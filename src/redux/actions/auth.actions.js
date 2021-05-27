@@ -1,11 +1,4 @@
-import {
-  REGISTER_REQUEST,
-  REGISTER_SUCCESS,
-  REGISTER_FAILURE,
-  LOGIN_REQUEST,
-  LOGIN_SUCCESS,
-  LOGIN_FAILURE,
-} from '../actions/types'
+import * as types from '../actions/types'
 import { authService } from '../../services/auth.service'
 import { history } from '../../helpers/history'
 
@@ -25,13 +18,13 @@ const login = (username, password, from) => {
   }
 
   function request(user) {
-    return { type: LOGIN_REQUEST, user }
+    return { type: types.LOGIN_REQUEST, user }
   }
   function success(user) {
-    return { type: LOGIN_SUCCESS, user }
+    return { type: types.LOGIN_SUCCESS, user }
   }
   function failure(error) {
-    return { type: LOGIN_FAILURE, error }
+    return { type: types.LOGIN_FAILURE, error }
   }
 }
 
@@ -53,17 +46,46 @@ const register = (user) => {
   }
 
   function request(user) {
-    return { type: REGISTER_REQUEST, user }
+    return { type: types.REGISTER_REQUEST, user }
   }
   function success(user) {
-    return { type: REGISTER_SUCCESS, user }
+    return { type: types.REGISTER_SUCCESS, user }
   }
   function failure(error) {
-    return { type: REGISTER_FAILURE, error }
+    return { type: types.REGISTER_FAILURE, error }
+  }
+}
+
+const googleAuth = (payload) => {
+  return (dispatch) => {
+    dispatch(request())
+
+    authService.googleAuth(payload).then(
+      (user) => {
+        dispatch(success(user))
+        history.push('/')
+        console.log('Registration Successful!!')
+      },
+      (error) => {
+        dispatch(failure(error.toString()))
+        console.log('Registration Failed')
+      }
+    )
+  }
+
+  function request() {
+    return { type: types.GOOGLE_AUTH_REQUEST }
+  }
+  function success(user) {
+    return { type: types.GOOGLE_AUTH_SUCCESS, user }
+  }
+  function failure(error) {
+    return { type: types.GOOGLE_AUTH_FAILURE, error }
   }
 }
 
 export const authActions = {
   register,
   login,
+  googleAuth,
 }
