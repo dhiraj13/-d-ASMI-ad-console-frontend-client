@@ -11,6 +11,7 @@ const register = async (user) => {
       const error = response.data && response.data.message
       return Promise.reject(error)
     }
+    setToLocalStorage('email', user.email)
     return response
   } catch (e) {
     logger.log('Error! Please Try Again. Could not Submit Data', e)
@@ -37,8 +38,17 @@ const login = async (username, password) => {
     const { access_token: accessToken, refresh_token: refreshToken } =
       response.data.data.payload
     setToLocalStorage('user', JSON.stringify(user))
+    setToLocalStorage('firstName', user.firstName || '')
+    setToLocalStorage('surName', user.surName || '')
+    setToLocalStorage('email', user.email || '')
+    setToLocalStorage('username', user.username || '')
+    setToLocalStorage(
+      'isEmailVerified',
+      user.isEmailVerified ? 'true' : 'false'
+    )
     setToLocalStorage('accessToken', accessToken)
     setToLocalStorage('refreshToken', refreshToken)
+    setToLocalStorage('userType', user.middlename || '')
 
     return user
   } catch (e) {

@@ -8,7 +8,12 @@ const login = (username, password, from) => {
     authService.login(username, password).then(
       (user) => {
         dispatch(success(user))
-        history.push(from)
+        if (user.isEmailVerified) {
+          history.push('/dashboard')
+        } else {
+          history.push('/confirmation')
+        }
+        // history.push(from)
       },
       (error) => {
         dispatch(failure(error.toString()))
@@ -35,7 +40,7 @@ const register = (user) => {
     authService.register(user).then(
       (user) => {
         dispatch(success(user))
-        history.push('/login')
+        history.push('/confirmation')
         console.log('Registration Successful!!')
       },
       (error) => {

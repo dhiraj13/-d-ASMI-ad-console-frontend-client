@@ -74,7 +74,7 @@ export const RegularSelect = ({ options, label }) => {
     )
 }
 
-export const OutlinedInput = ({ name, label, type, size, ...rest }) => {
+export const OutlinedInput = ({ name, label, type, size,error, ...rest }) => {
     return (
         <div className="form-group">
             <div className="form-control-wrap">
@@ -86,13 +86,14 @@ export const OutlinedInput = ({ name, label, type, size, ...rest }) => {
                     {...rest}
                 />
                 <label className="form-label-outlined" htmlFor={name}>{label}</label>
+                {error && <p>{error[name]}</p>}
             </div>
         </div>
     )
 };
 
 
-export const PasswordInput = ({ label, type, size, ...rest }) => {
+export const PasswordInput = ({ label, type, size, error, ...rest }) => {
     const name = 'password';
     return (
         <div className="form-group mb-1">
@@ -108,6 +109,7 @@ export const PasswordInput = ({ label, type, size, ...rest }) => {
                     {...rest}
                 />
                 <label className="form-label-outlined" htmlFor={name}>{label}</label>
+                {error && <p>{error[name]}</p>}
             </div>
         </div>
     )

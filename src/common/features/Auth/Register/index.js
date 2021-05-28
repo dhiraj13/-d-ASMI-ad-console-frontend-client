@@ -1,14 +1,12 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Link } from 'react-router-dom'
-import GoogleLogin from 'react-google-login'
+// import { Link } from 'react-router-dom'
+// import GoogleLogin from 'react-google-login'
 
-import { OutlinedInput, PasswordInput } from '../../../components/Form/Input'
-
+// import { OutlinedInput, PasswordInput } from '../../../components/Form/Input'
 import { authActions } from '../../../../redux/actions/auth.actions'
-
-const env = process.env.REACT_APP_GOOGLE_CLIENT_ID
-console.log(env, 'env')
+import UserInfo from './userInfo'
+import UserType from './userType'
 
 const RegisterPage = () => {
   const [user, setUser] = useState({
@@ -19,6 +17,8 @@ const RegisterPage = () => {
     username: '',
   })
   const [submitted, setSubmitted] = useState(false)
+  const [errors, setErrors] = useState({})
+  const [step, setStep] = useState(1)
   const registering = useSelector((state) => state.registration.registering)
   const dispatch = useDispatch()
 
@@ -27,187 +27,92 @@ const RegisterPage = () => {
   // useEffect(() => {
   //     dispatch(authActions.logout())
   // })
+
   const handleChange = (e) => {
     const { name, value } = e.target
-    setUser((user) => ({ ...user, [name]: value }))
+    setUser((user) => ({ ...user, [name]: value.trim() }))
   }
-  const handleSubmit = (e) => {
-    e.preventDefault()
 
-    setSubmitted(true)
+  const validate = () => {
+    const errors = {}
+    if (!user.firstName) errors.firstName = "Can't be blank"
+    if (user.firstName && user.firstName.length > 26)
+      errors.firstName = "Can't be more than 26 characters"
+    if (user.firstName && !/^[A-Za-z]+$/.test(user.firstName))
+      errors.firstName = 'Can only contain letters'
+    if (!user.surName) errors.surName = "Can't be blank"
+    if (user.surName && user.surName.length > 26)
+      errors.surName = "Can't be more than 26 characters"
+    if (user.surName && !/^[A-Za-z]+$/.test(user.surName))
+      errors.surName = 'Can only contain letters'
+    if (!user.username) errors.username = "Can't be blank"
+    if (user.username && !/^[A-Za-z0-9_]+$/.test(user.username))
+      errors.username = 'Can only be alpha numeric'
+    if (!user.password) errors.password = "Can't be blank"
     if (
-      user.firstName &&
-      user.surName &&
-      user.username &&
       user.password &&
-      user.email
-    ) {
-      dispatch(authActions.register(user))
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/.test(
+        user.password
+      )
+    )
+      errors.password = 'Use Strong Password'
+    if (!user.email) errors.email = "Can't be blank"
+    if (
+      user.email &&
+      !/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
+        user.email
+      )
+    )
+      errors.email = 'Invalid Email'
+    return errors
+  }
+
+  const validateForm = () => {
+    const errors = validate()
+    setErrors(errors)
+    if (Object.keys(errors).length === 0) {
+      console.log('no errors')
+      setStep(step + 1)
     }
   }
 
-  const connectGoogle = (response) => {
-    console.log(response, 'response')
-    // props.linkGoogleRequest(
-    //     response.tokenObj.access_token,
-    // );
-    dispatch(authActions.googleAuth(response.tokenObj.access_token))
+  const handleSubmit = async (e, type) => {
+    e.preventDefault()
+    await setUser((user) => ({ ...user, middlename: type }))
+    const errors = validate()
+    setErrors(errors)
+    setSubmitted(true)
+    // if (Object.keys(errors).length === 0) {
+    //   console.log('no errors')
+    //   dispatch(authActions.register(user))
+    // }
   }
-  const connectGoogleError = (response) => {}
 
-  return (
-    <div className='nk-main'>
-      <div className='nk-wrap nk-wrap-nosidebar'>
-        <div className='nk-content'>
-          {/* Auth Body */}
-          <div className='nk-block nk-block-middle'>
-            <div
-              className='nk-auth-body text-center bg-white'
-              style={{ borderRadius: '10px' }}
-            >
-              {/* Brand Logo */}
-              <div className='brand-logo'>
-                <Link to='/' className='logo-link'>
-                  <img
-                    src='/static/images/logo-nav.png'
-                    width='88'
-                    height='43'
-                    alt='ASMI'
-                  />
-                </Link>
-              </div>
-              {/* Main Login Form Section - replace with form element later */}
-              <div className='nk-block-head-content py-2'>
-                <h5 className='nk-block-title'>Sign up</h5>
-                <div className='nk-block-des'>
-                  <p>Create your ASMI Account</p>
-                </div>
+  // const connectGoogle = (response) => {
+  //   dispatch(authActions.googleAuth(response.tokenObj.access_token))
+  // }
+  // const connectGoogleError = (response) => {}
 
-                {/* Login Form */}
-                <form name='form' onSubmit={handleSubmit}>
-                  <div className='mt-4'>
-                    <div className='form-row'>
-                      <div className='col'>
-                        <OutlinedInput
-                          name='firstName'
-                          label='First Name'
-                          size='lg'
-                          value={user.firstName}
-                          onChange={handleChange}
-                        />
-                      </div>
-                      <div className='col'>
-                        <OutlinedInput
-                          name='surName'
-                          label='Last Name'
-                          size='lg'
-                          value={user.surName}
-                          onChange={handleChange}
-                        />
-                      </div>
-                    </div>
-                    <div className='mt-4'>
-                      <OutlinedInput
-                        name='email'
-                        label='Email'
-                        size='lg'
-                        value={user.email}
-                        onChange={handleChange}
-                      />
-                    </div>
-
-                    <div className='form-row mt-4'>
-                      <div className='col'>
-                        <OutlinedInput
-                          name='username'
-                          type='text'
-                          label='Username'
-                          className='form-control form-control-outlined form-control-lg'
-                          size='lg'
-                          value={user.username}
-                          onChange={handleChange}
-                        />
-                      </div>
-                      <div className='col'>
-                        <PasswordInput
-                          type='password'
-                          name='password'
-                          label='Password'
-                          size='lg'
-                          value={user.password}
-                          onChange={handleChange}
-                        />
-                      </div>
-                    </div>
-                    <div className='mt-4'>
-                      {/* <RegularButton url='#' buttonClasses="btn btn-primary w-100"> <p className="w-100 text-center">Sign Up</p></RegularButton> */}
-                      <div className='form-group'>
-                        <button className='btn btn-primary btn-block'>
-                          Sign Up
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  {/* {message && (
-                                        <div className="form-group">
-                                            <div className="alert alert-success" role="alert">
-                                                {message}
-                                            </div>
-                                        </div>
-                                    )} */}
-
-                  {/* <CheckButton style={{ display: "none" }} ref={checkBtn} /> */}
-                </form>
-
-                {/* OAuth Signin */}
-                <div className='mb-1'>
-                  <p className='mt-3'>or sign up with</p>
-                  {/* <Link to='/'>
-                    <img
-                      src={'/static/images/icon-google.svg'}
-                      alt='Logo Nav'
-                      height='42'
-                      width='42'
-                    />
-                  </Link> */}
-                  <GoogleLogin
-                    clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}
-                    render={(renderProps) => (
-                      <img
-                        src={'/static/images/icon-google.svg'}
-                        alt='Logo Nav'
-                        height='42'
-                        width='42'
-                        onClick={renderProps.onClick}
-                        style={{ cursor: 'pointer' }}
-                      />
-                    )}
-                    icon={false}
-                    onSuccess={connectGoogle}
-                    onFailure={connectGoogleError}
-                    cookiePolicy={'single_host_origin'}
-                  />
-                </div>
-                {/* Signup Footer Link */}
-                <div>
-                  <p>
-                    Already have an account?{' '}
-                    <Link to='/'>
-                      <u>Signin</u>
-                    </Link>
-                  </p>
-                </div>
-              </div>
-            </div>
-            {/* Footer Navigation */}
-            <div className='nk-auth-body text-right py-1 pr-0'>
-              <p>Nav Linkssss</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+  switch (step) {
+    case 1:
+      return (
+        <UserInfo
+          validateForm={validateForm}
+          handleChange={handleChange}
+          user={user}
+          errors={errors}
+        />
+      )
+    case 2:
+      return (
+        <UserType
+          prevStep={() => setStep(step - 1)}
+          handleSubmit={handleSubmit}
+        />
+      )
+    default:
+      console.log('This is a multi-step form built with React.')
+  }
 }
 
 export default RegisterPage

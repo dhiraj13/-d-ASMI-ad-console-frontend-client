@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
 import React from "react";
-import EmailConfirmationImage from '../../../assets/images/email-confirm.svg'
+import EmailConfirmationImage from '../../../../assets/images/email-confirm.svg'
+import { getFromLocalStorage } from '../../../../helpers/localstorage'
 
-const EmailConfirmation = ({ email }) => {
+const EmailConfirmation = () => {
+    const email = getFromLocalStorage('email')
     return (
         <div className="nk-main">
             <div className="nk-wrap nk-wrap-nosidebar">
@@ -16,11 +18,11 @@ const EmailConfirmation = ({ email }) => {
 
                             <div className="my-4">
                                 <h4>Email Confirmation</h4>
-                                <p>We have sent email to {email} to confirm the validity of your email address. After receiving the email follow the link provided to complete your registration</p>
+                                <p>We have sent email to <span className='text-primary'>{email}</span> to confirm the validity of your email address. After receiving the email follow the link provided to complete your registration</p>
                             </div>
                             <hr />
                             <div>
-                                <p>If you have not received any mail, <Link to="/">Resend Confirmation Email</Link></p>
+                                <p>If you have not received any mail, <Link to="/" className='text-primary'>Resend Confirmation Email</Link></p>
                             </div>
                         </div>
                         {/* Footer Navigation */}
