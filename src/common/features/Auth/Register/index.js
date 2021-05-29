@@ -1,39 +1,55 @@
-import React, { useState, useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-// import { Link } from 'react-router-dom'
+import React, { Component } from 'react'
+import { connect } from 'react-redux'
 // import GoogleLogin from 'react-google-login'
-
-// import { OutlinedInput, PasswordInput } from '../../../components/Form/Input'
 import { authActions } from '../../../../redux/actions/auth.actions'
 import UserInfo from './userInfo'
 import UserType from './userType'
 
-const RegisterPage = () => {
-  const [user, setUser] = useState({
-    firstName: '',
-    surName: '',
-    email: '',
-    password: '',
-    username: '',
-  })
-  const [submitted, setSubmitted] = useState(false)
-  const [errors, setErrors] = useState({})
-  const [step, setStep] = useState(1)
-  const registering = useSelector((state) => state.registration.registering)
-  const dispatch = useDispatch()
-
-  console.log(submitted, registering)
-
-  // useEffect(() => {
-  //     dispatch(authActions.logout())
-  // })
-
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setUser((user) => ({ ...user, [name]: value.trim() }))
+class RegisterPage extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      user: {
+        firstName: '',
+        surName: '',
+        email: '',
+        password: '',
+        username: '',
+      },
+      submitted: false,
+      errors: {},
+      step: 1,
+    }
   }
 
-  const validate = () => {
+  nextStep = () => {
+    const { step } = this.state
+    this.setState({
+      step: step + 1,
+    })
+  }
+
+  // Go back to prev step
+  prevStep = () => {
+    const { step } = this.state
+    this.setState({
+      step: step - 1,
+    })
+  }
+
+  handleChange = (e) => {
+    const { name, value } = e.target
+    // setUser((user) => ({ ...user, [name]: value.trim() }))
+    this.setState((state) => ({
+      user: {
+        ...state.user,
+        [name]: value.trim(),
+      },
+    }))
+  }
+
+  validate = () => {
+    const { user } = this.state
     const errors = {}
     if (!user.firstName) errors.firstName = "Can't be blank"
     if (user.firstName && user.firstName.length > 26)
@@ -67,25 +83,38 @@ const RegisterPage = () => {
     return errors
   }
 
-  const validateForm = () => {
-    const errors = validate()
-    setErrors(errors)
+  validateForm = () => {
+    const errors = this.validate()
+    this.setState({ errors })
     if (Object.keys(errors).length === 0) {
       console.log('no errors')
-      setStep(step + 1)
+      this.setState((state) => ({
+        step: state.step + 1,
+      }))
     }
   }
 
-  const handleSubmit = async (e, type) => {
+  handleSubmit = (e, type) => {
     e.preventDefault()
-    await setUser((user) => ({ ...user, middlename: type }))
-    const errors = validate()
-    setErrors(errors)
-    setSubmitted(true)
-    // if (Object.keys(errors).length === 0) {
-    //   console.log('no errors')
-    //   dispatch(authActions.register(user))
-    // }
+    const errors = this.validate()
+    this.setState({ errors })
+    this.setState({ submitted: true })
+    // setUser((user) => ({ ...user, middlename: type }))
+    if (Object.keys(errors).length === 0) {
+      console.log('no errors')
+      this.setState(
+        (state) => ({
+          user: {
+            ...state.user,
+            middlename: type,
+          },
+        }),
+        () => {
+          console.log(this.state.user, 'user')
+          this.props.register(this.state.user)
+        }
+      )
+    }
   }
 
   // const connectGoogle = (response) => {
@@ -93,26 +122,37 @@ const RegisterPage = () => {
   // }
   // const connectGoogleError = (response) => {}
 
-  switch (step) {
-    case 1:
-      return (
-        <UserInfo
-          validateForm={validateForm}
-          handleChange={handleChange}
-          user={user}
-          errors={errors}
-        />
-      )
-    case 2:
-      return (
-        <UserType
-          prevStep={() => setStep(step - 1)}
-          handleSubmit={handleSubmit}
-        />
-      )
-    default:
-      console.log('This is a multi-step form built with React.')
+  render() {
+    const { errors, user, step } = this.state
+
+    switch (step) {
+      case 1:
+        return (
+          <UserInfo
+            validateForm={this.validateForm}
+            handleChange={this.handleChange}
+            user={user}
+            errors={errors}
+          />
+        )
+      case 2:
+        return (
+          <UserType prevStep={this.prevStep} handleSubmit={this.handleSubmit} />
+        )
+      default:
+        console.log('This is a multi-step form built with React.')
+    }
   }
 }
 
-export default RegisterPage
+const mapStateToProps = (state) => {
+  return {
+    registering: state.registration.registering,
+  }
+}
+
+const mapDispatchToProps = (dispatch) => ({
+  register: (user) => dispatch(authActions.register(user)),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(RegisterPage)
